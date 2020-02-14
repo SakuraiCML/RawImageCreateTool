@@ -1,0 +1,17 @@
+---------------------------
+  *** version 1.0.0.1 ***
+---------------------------
+ Programmer  : eric.cm.liu
+ Issue       : none
+ Cause       : none
+ Sol         : none
+ Note        : release version 1.0.0.1
+
+---------------------------
+  *** version 0.0.0.1 ***
+---------------------------
+ Programmer  : eric.cm.liu
+ Issue       : none
+ Cause       : none
+ Sol         : none
+ Note        : first release

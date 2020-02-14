@@ -1,0 +1,4 @@
+#忽略此路徑下所有檔案
+*
+#除了.gitignore
+!*.gitignore

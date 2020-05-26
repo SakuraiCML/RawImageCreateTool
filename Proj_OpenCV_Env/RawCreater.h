@@ -57,6 +57,9 @@ public:
     //* save image
     bool SaveImg(std::string strName = "Result");
 
+    //* SFR chess chart
+    void SFRChessChart(int block_width, int block_height, double rotate_degree);
+
     //* sub function
 public:
     std::string RawFormat_Str(format m_ft);
@@ -66,6 +69,8 @@ private:
     void Image_Full(cv::Mat& _Img);
     void CreateRaw(unsigned char* _Buffer);
     void SaveRaw(std::string str_name, unsigned char* _Buffer);
+    //* rotate function
+    cv::Point rotateD(cv::Point inPoint, cv::Point centerPoint, double Dgree);
 
 };
 

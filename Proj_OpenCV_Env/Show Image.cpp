@@ -29,6 +29,9 @@ int main(int argc, char* argv[]) {
     //* Create
     rcObj.CreateRawImg();
 
+    rcObj.ShowImg("TT_G_S", rcObj.mImg, 0);
+    rcObj.SFRChessChart(64, 48, -10);
+
     //* SaveImage
     std::string strFileName = std::to_string(rcObj.m_nImgW) + "_" +
         std::to_string(rcObj.m_nImgH) + "_" +

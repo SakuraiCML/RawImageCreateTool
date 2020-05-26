@@ -304,6 +304,59 @@ bool RawCreater::SaveImg(std::string strName) {
     return true;
 }
 
+void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_degree) {
+    cv::Mat temp = mImg.clone();
+    cv::Mat mtBlock(block_height, block_width, temp.type());
+    mtBlock.setTo(0);
+
+    //* Image Center
+    int nCC_x = m_nImgW / 2;
+    int nCC_y = m_nImgH / 2;
+
+    int m_nSplit_Y = m_nImgH / block_height;
+    int m_nSplit_X = m_nImgW / block_width;
+        
+    //* moving index
+    int nMoveX = m_nSplit_X / 2;
+    int nMoveY = m_nSplit_Y / 2;;
+
+    //* CC block
+    int nCC_L = nCC_x - block_width / 2;
+    int nCC_T = nCC_y - block_height / 2;
+    int nCC_R = nCC_L + block_width;
+    int nCC_B = nCC_T + block_height;
+
+    for (int y = 0; y < m_nSplit_Y; y+=2) {
+        for (int x = 0; x < m_nSplit_X; x+=2) {
+            int nL = nCC_x - (nMoveX - x) * block_width;
+            int nT = nCC_y - (nMoveY - y) * block_height;
+            mtBlock.copyTo(temp(cv::Rect(nL, nT, block_width, block_height)));
+            
+            nL = nCC_x - (nMoveX - x - 1) * block_width;
+            nT = nCC_y - (nMoveY - y - 1) * block_height;
+            mtBlock.copyTo(temp(cv::Rect(nL, nT, block_width, block_height)));
+        }
+    }
+
+    ShowImg("TT_G_S", temp, 0);
+
+    cv::Mat temp2(m_nImgH, m_nImgW, temp.type());
+    temp2.setTo(0);
+    for (size_t row = 0; row < temp.rows; row++) {
+        for (size_t col = 0; col < temp.cols; col++) {
+            cv::Point in(col,row);
+            cv::Point out = rotateD(in, cv::Point(nCC_y, nCC_x), rotate_degree);
+            if (out.x>0 && out.x < m_nImgW && out.y>0 && out.y < m_nImgH) {
+                //temp(cv::Rect(in.x, in.y, 1, 1)).copyTo(temp2(cv::Rect(out.x, out.y, 1, 1)));
+                temp(cv::Rect(out.x, out.y, 1, 1)).copyTo(temp2(cv::Rect(in.x, in.y, 1, 1)));
+            }
+        }
+    }
+
+    ShowImg("TT_G_S2", temp2, 0);
+
+}
+
 std::string RawCreater::RawFormat_Str(format m_ft) {
     if (m_ft == format::RAW8) {
         return std::string("RAW8");
@@ -534,4 +587,18 @@ void RawCreater::SaveRaw(std::string str_name, unsigned char* _Buffer) {
         fsRawFile.write((char*)_Buffer, m_nImgH * m_nImgW * 2);
     }
     fsRawFile.close();
+}
+
+cv::Point RawCreater::rotateD(cv::Point inPoint, cv::Point centerPoint, double Dgree) {
+    cv::Point result(0, 0);
+    cv::Point temp(0, 0);
+    double cosd = cos(Dgree * 3.141592 / 180.0);
+    double sind = sin(Dgree * 3.141592 / 180.0);
+    temp.x = inPoint.x - centerPoint.x;
+    temp.y = inPoint.y - centerPoint.y;
+    result.x = int(double(temp.x) * cosd - double(temp.y) * sind);
+    result.y = int(double(temp.x) * sind + double(temp.y) * cosd);
+    result.x = result.x + centerPoint.x;
+    result.y = result.y + centerPoint.y;
+    return result;
 }

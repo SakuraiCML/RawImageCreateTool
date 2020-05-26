@@ -41,6 +41,7 @@ public:
     int m_G = 0;
     int m_B = 0;
     cv::Mat mImg;
+    cv::Mat mImgSFR;
     int m_nCV_type = 0;
     unsigned char* SaveRawBuffer = nullptr;
 
@@ -67,7 +68,7 @@ public:
 private:
     void normalizedColor(double* Color_vector, int nColor, int nRange, int nDL);
     void Image_Full(cv::Mat& _Img);
-    void CreateRaw(unsigned char* _Buffer);
+    void CreateRaw(cv::Mat& _srcImg, unsigned char* _Buffer);
     void SaveRaw(std::string str_name, unsigned char* _Buffer);
     //* rotate function
     cv::Point rotateD(cv::Point inPoint, cv::Point centerPoint, double Dgree);

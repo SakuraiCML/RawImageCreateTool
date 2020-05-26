@@ -112,7 +112,7 @@ int RawCreater::Initial() {
 }
 
 bool RawCreater::ShowImg(int waitKeyTime) {
-    
+
     //* avoid empty image
     if (mImg.empty()) {
         std::cout << "Image showing error" << std::endl;
@@ -157,7 +157,7 @@ void RawCreater::ShowImg(std::string strTitle, cv::Mat img, int waitKeyTime) {
 }
 
 int RawCreater::CreateRawImg() {
-     //* Test
+    //* Test
     cv::Mat imgR(m_nImgH, m_nImgW, m_nCV_type + 8 * 2);
     imgR = cv::Scalar(0, 0, m_R);
     cv::Mat imgG(m_nImgH, m_nImgW, m_nCV_type + 8 * 2);
@@ -207,8 +207,8 @@ int RawCreater::CreateRawImg() {
     imgG.setTo(0);
     imgB.setTo(0);
     matBMP.setTo(0);
-    for (int x = 0; x < m_nImgW/2; x++) {
-        for (int y = 0; y < m_nImgH/2; y++) {
+    for (int x = 0; x < m_nImgW / 2; x++) {
+        for (int y = 0; y < m_nImgH / 2; y++) {
             int nIdx = (int)sqrt((x - m_nImgW / 2) * (x - m_nImgW / 2) + (y - m_nImgH / 2) * (y - m_nImgH / 2));
             if (nIdx < nMax_W) {
                 if (m_nCV_type == CV_16UC1) {
@@ -228,7 +228,7 @@ int RawCreater::CreateRawImg() {
                     matBMP.at<cv::Vec3b>(y, x)[2] = (unsigned char)R_index[nU - nIdx];
                     matBMP.at<cv::Vec3b>(y, x)[1] = (unsigned char)G_index[nU - nIdx];
                     matBMP.at<cv::Vec3b>(y, x)[0] = (unsigned char)B_index[nU - nIdx];
-                }         
+                }
             }
         }
     }
@@ -247,7 +247,7 @@ int RawCreater::CreateRawImg() {
 
     //* smooth - gauss blur
     int nS = 15;
-    if (nS%2 == 0) {
+    if (nS % 2 == 0) {
         nS -= 1;
     }
     for (size_t i = 0; i < 1; i++) {
@@ -255,7 +255,7 @@ int RawCreater::CreateRawImg() {
     }
     mImg = matBMP.clone();
     //ShowImg("TT_G_S", matBMP, 0);
-    
+
     delete[] dGaussCoeff; dGaussCoeff = nullptr;
     delete[] R_index; R_index = nullptr;
     delete[] G_index; G_index = nullptr;
@@ -267,93 +267,110 @@ int RawCreater::CreateRawImg() {
 bool RawCreater::SaveImg(std::string strName) {
     //* Save string
     std::string  strSavePath = "SaveImg/" + strName;
-    
+
     //* write bmp
     if (m_ft == format::RAW8) {
         cv::imwrite(strSavePath + ".bmp", mImg);
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW];
-        CreateRaw(Buffer);
+        CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
+        CreateRaw(mImgSFR, Buffer);
+        SaveRaw(strSavePath+"sfrChess", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
     else if (m_ft == format::RAW10) {
         //* 1024 -> 256
         cv::imwrite("SaveImg/" + strName + ".bmp", mImg / 4);
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
-        CreateRaw(Buffer);
+        CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
+        CreateRaw(mImgSFR, Buffer);
+        SaveRaw(strSavePath + "sfrChess", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
     else if (m_ft == format::RAW12) {
         //* 4096 -> 256
         cv::imwrite("SaveImg/" + strName + ".bmp", mImg / 16);
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
-        CreateRaw(Buffer);
+        CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
+        CreateRaw(mImgSFR, Buffer);
+        SaveRaw(strSavePath + "sfrChess", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
     else if (m_ft == format::RAW16) {
         //* 65536 -> 256
         cv::imwrite("SaveImg/" + strName + ".bmp", mImg / 256);
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
-        CreateRaw(Buffer);
+        CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
+        CreateRaw(mImgSFR, Buffer);
+        SaveRaw(strSavePath + "sfrChess", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
-    
+
     return true;
 }
 
 void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_degree) {
-    cv::Mat temp = mImg.clone();
+    cv::Mat temp(mImg.rows * 2, mImg.cols * 2, mImg.type());
+    mImg.copyTo(temp(cv::Rect(0, 0, m_nImgW, m_nImgH)));
+    //ShowImg("TT_G_SV", temp, 0);
+    mImg.copyTo(temp(cv::Rect(m_nImgW, 0, m_nImgW, m_nImgH)));
+    //ShowImg("TT_G_SV", temp, 0);
+    mImg.copyTo(temp(cv::Rect(0, m_nImgH, m_nImgW, m_nImgH)));
+    //ShowImg("TT_G_SV", temp, 0);
+    mImg.copyTo(temp(cv::Rect(m_nImgW, m_nImgH, m_nImgW, m_nImgH)));
+    //ShowImg("TT_G_SV", temp, 0);
     cv::Mat mtBlock(block_height, block_width, temp.type());
     mtBlock.setTo(0);
 
     //* Image Center
-    int nCC_x = m_nImgW / 2;
-    int nCC_y = m_nImgH / 2;
+    int nCC_x = m_nImgW;
+    int nCC_y = m_nImgH;
 
-    int m_nSplit_Y = m_nImgH / block_height;
-    int m_nSplit_X = m_nImgW / block_width;
-        
+    int m_nSplit_Y = m_nImgH * 2 / block_height;
+    int m_nSplit_X = m_nImgW * 2 / block_width;
+
     //* moving index
     int nMoveX = m_nSplit_X / 2;
     int nMoveY = m_nSplit_Y / 2;;
 
-    //* CC block
-    int nCC_L = nCC_x - block_width / 2;
-    int nCC_T = nCC_y - block_height / 2;
-    int nCC_R = nCC_L + block_width;
-    int nCC_B = nCC_T + block_height;
-
-    for (int y = 0; y < m_nSplit_Y; y+=2) {
-        for (int x = 0; x < m_nSplit_X; x+=2) {
-            int nL = nCC_x - (nMoveX - x) * block_width;
-            int nT = nCC_y - (nMoveY - y) * block_height;
+    for (int y = 0; y < m_nSplit_Y; y += 2) {
+        for (int x = 0; x < m_nSplit_X; x += 2) {
+            int nL = nCC_x - (nMoveX - x) * block_width - block_width / 2;
+            int nT = nCC_y - (nMoveY - y) * block_height - block_height / 2;
+            if (nT < 0 || nL < 0 || nT + block_height > m_nImgH * 2 || nL + block_width > m_nImgW * 2) continue;
             mtBlock.copyTo(temp(cv::Rect(nL, nT, block_width, block_height)));
-            
-            nL = nCC_x - (nMoveX - x - 1) * block_width;
-            nT = nCC_y - (nMoveY - y - 1) * block_height;
+            //ShowImg("TT_G_SV", temp, 0);
+            nL = nCC_x - (nMoveX - x - 1) * block_width - block_width / 2;
+            nT = nCC_y - (nMoveY - y - 1) * block_height - block_height / 2;
+            if (nT < 0 || nL < 0 || nT + block_height > m_nImgH * 2 || nL + block_width > m_nImgW * 2) continue;
             mtBlock.copyTo(temp(cv::Rect(nL, nT, block_width, block_height)));
+            //ShowImg("TT_G_SV", temp, 0);
         }
     }
 
-    ShowImg("TT_G_S", temp, 0);
+    //ShowImg("TT_G_SV", temp, 0);
 
-    cv::Mat temp2(m_nImgH, m_nImgW, temp.type());
+    cv::Mat temp2 = temp.clone();
     temp2.setTo(0);
     for (size_t row = 0; row < temp.rows; row++) {
         for (size_t col = 0; col < temp.cols; col++) {
-            cv::Point in(col,row);
+            cv::Point in(col, row);
             cv::Point out = rotateD(in, cv::Point(nCC_y, nCC_x), rotate_degree);
-            if (out.x>0 && out.x < m_nImgW && out.y>0 && out.y < m_nImgH) {
+            if (out.x > 0 && out.x < m_nImgW * 2 && out.y>0 && out.y < m_nImgH * 2) {
                 //temp(cv::Rect(in.x, in.y, 1, 1)).copyTo(temp2(cv::Rect(out.x, out.y, 1, 1)));
                 temp(cv::Rect(out.x, out.y, 1, 1)).copyTo(temp2(cv::Rect(in.x, in.y, 1, 1)));
             }
         }
     }
 
-    ShowImg("TT_G_S2", temp2, 0);
+    //ShowImg("TT_G_S2", temp2, 0);
+
+    //cv::Mat crop = temp2(cv::Rect(m_nImgW - m_nImgW / 2, m_nImgH - m_nImgH / 2, m_nImgW, m_nImgH)).clone();
+    //ShowImg("TT_G_SR", crop, 0);
+    mImgSFR = temp2(cv::Rect(m_nImgW - m_nImgW / 2, m_nImgH - m_nImgH / 2, m_nImgW, m_nImgH)).clone();
 
 }
 
@@ -430,7 +447,7 @@ void RawCreater::normalizedColor(double* Color_vector, int nColor, int nRange, i
 }
 
 void RawCreater::Image_Full(cv::Mat& _Img) {
-    
+
     //* temp buffer
     cv::Mat temp = _Img(cv::Rect(0, 0, _Img.cols / 2, _Img.rows / 2)).clone();
     //* q to half
@@ -444,8 +461,8 @@ void RawCreater::Image_Full(cv::Mat& _Img) {
 
 }
 
-void RawCreater::CreateRaw(unsigned char* _Buffer) {
-    
+void RawCreater::CreateRaw(cv::Mat& _srcImg, unsigned char* _Buffer) {
+
     //** color initial parameter **
     //* default RGGB
     int nS_B = 1;
@@ -462,18 +479,18 @@ void RawCreater::CreateRaw(unsigned char* _Buffer) {
     if (bS_G) {
         nEnd = 1;
     }
-    
+
     //* start
     if (m_ft == format::RAW8) {
         //* buffer index
         unsigned char* dst = _Buffer;
         //* B G R B G R
         //* -1 0 1  2  3  4
-        unsigned char* src = mImg.data + 1;
-        for (size_t y = 0; y < (size_t)m_nImgH; y +=2 ) {
+        unsigned char* src = _srcImg.data + 1;
+        for (size_t y = 0; y < (size_t)m_nImgH; y += 2) {
             //* boundary
             unsigned char* bayer_end = dst + m_nImgW;
-            
+
             //* start with green
             if (bS_G) {
                 //* G
@@ -501,7 +518,7 @@ void RawCreater::CreateRaw(unsigned char* _Buffer) {
                 dst[0] = src[nS_B];
                 //* G
                 dst[0 + m_nImgW] = src[(m_nImgW * 3)];
-                
+
                 dst++;
                 src += 3;
             }
@@ -514,12 +531,12 @@ void RawCreater::CreateRaw(unsigned char* _Buffer) {
     else if (m_ft == format::RAW10 || m_ft == format::RAW12 || m_ft == format::RAW16) {
         nS_B *= 2;
         nEnd *= 2;
-        
+
         //* buffer index
         unsigned char* dst = _Buffer;
         //* B G R B G R
         //* -1 0 1  2  3  4
-        unsigned char* src = mImg.data + 2;
+        unsigned char* src = _srcImg.data + 2;
         for (size_t y = 0; y < (size_t)m_nImgH; y += 2) {
             //* boundary
             unsigned char* bayer_end = dst + 2 * m_nImgW;

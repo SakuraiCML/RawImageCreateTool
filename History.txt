@@ -1,4 +1,13 @@
 ---------------------------
+  *** version 1.0.0.2 ***
+---------------------------
+ Programmer  : eric.cm.liu
+ Issue       : none
+ Cause       : none
+ Sol         : 新增SFR測試圖生成功能
+ Note        : release version 1.0.0.2
+
+---------------------------
   *** version 1.0.0.1 ***
 ---------------------------
  Programmer  : eric.cm.liu

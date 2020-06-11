@@ -1,6 +1,6 @@
 set root=%~dp0%
 CD /D %root%
-start Raw_Creater.exe 640 480 3 1 520 896 648
+start Raw_Creater.exe 640 480 3 1 520 896 648 100 80 -8.0
 :: 備註
 :: argv[0] : .exe name
 :: argv[1] : Image Width
@@ -18,3 +18,6 @@ start Raw_Creater.exe 640 480 3 1 520 896 648
 :: argv[5] : R
 :: argv[6] : G
 :: argv[7] : B
+:: argc[8] : SFR roi width
+:: argc[9] : SFR roi height
+:: argc[10] : SFR rotate degree

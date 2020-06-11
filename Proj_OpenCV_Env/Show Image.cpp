@@ -26,11 +26,18 @@ int main(int argc, char* argv[]) {
         return nErrorCode;
     }
 
-    //* Create
+    //* Create RAW
     rcObj.CreateRawImg();
+    //rcObj.ShowImg("TT_G_S", rcObj.mImg, 0);
 
-    rcObj.ShowImg("TT_G_S", rcObj.mImg, 0);
-    rcObj.SFRChessChart(100, 100, -8);
+    //* Create SFR Chess Chart
+    rcObj.SFRChessChart(rcObj.m_sfrW, rcObj.m_sfrH, rcObj.m_sfrDegree);
+
+    //* Create SFR Cross Chart
+    rcObj.SFRCrossChart(rcObj.m_sfrW, rcObj.m_sfrH, rcObj.m_sfrDegree);
+
+    //* Create SFR Block Chart
+    rcObj.SFRBlockChart(rcObj.m_sfrW, rcObj.m_sfrH, rcObj.m_sfrDegree);
 
     //* SaveImage
     std::string strFileName = std::to_string(rcObj.m_nImgW) + "_" +
@@ -40,11 +47,10 @@ int main(int argc, char* argv[]) {
     rcObj.SaveImg(strFileName);
     
     //* Show Result
-    if (!rcObj.ShowImg(1)) {
+    if (!rcObj.ShowImg(0)) {
         system("pause");
         return -3;
     }
-
 
     //system("pause");
     return 0;

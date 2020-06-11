@@ -40,10 +40,22 @@ public:
     int m_R = 0;
     int m_G = 0;
     int m_B = 0;
-    cv::Mat mImg;
-    cv::Mat mImgSFR;
     int m_nCV_type = 0;
     unsigned char* SaveRawBuffer = nullptr;
+    //* Normal Color 
+    cv::Mat mImg;
+
+    //** sfr param **
+    int m_sfrW = 0;
+    int m_sfrH = 0;
+    double m_sfrDegree = 0.0;
+    //* SFR Chess Chart
+    cv::Mat mImgSFR;
+    //* SFR Cross Chart
+    cv::Mat mImgSFR_Cross;
+    cv::Mat mImgSFR_Cross_Inv;
+    //* SFR Block Chart
+    cv::Mat mImgSFR_Block;
 
     //* function
 public:
@@ -60,6 +72,12 @@ public:
 
     //* SFR chess chart
     void SFRChessChart(int block_width, int block_height, double rotate_degree);
+
+    //* SFR cross chart
+    void SFRCrossChart(int block_width, int block_height, double rotate_degree);
+
+    //* SFR block chart
+    void SFRBlockChart(int block_width, int block_height, double rotate_degree);
 
     //* sub function
 public:

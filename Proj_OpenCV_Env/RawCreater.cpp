@@ -94,6 +94,18 @@ int RawCreater::Initial() {
             std::cout << "B : " << m_B << std::endl;
             return -2;
         }
+
+        //* check SFR setting param
+        if (m_argc >= 11) {
+            m_sfrW = std::stoi(m_argv[8]);
+            m_sfrH = std::stoi(m_argv[9]);
+            m_sfrDegree = std::stod(m_argv[10]);
+        }
+        else {
+            m_sfrW = m_nImgW / 20;
+            m_sfrH = m_nImgH / 20;
+            m_sfrDegree = 8.0;
+        }
     }
 
     //** set image **
@@ -123,25 +135,50 @@ bool RawCreater::ShowImg(int waitKeyTime) {
         return false;
     }
 
+    //* window name
+    int nSx = 50;
+    int nSy = 10;
+    int nGap = 10;
     cv::namedWindow("Raw Final");
-    cv::moveWindow("Raw Final", 10, 10);
+    cv::moveWindow("Raw Final", nSx, nSy);
+    cv::namedWindow("SFR Chess Chart Final");
+    cv::moveWindow("SFR Chess Chart Final", nSx + mImg.cols + nGap, nSy);
+    cv::namedWindow("SFR Block Chart Final");
+    cv::moveWindow("SFR Block Chart Final", nSx + (mImg.cols + nGap) * 2, nSy);
+    cv::namedWindow("SFR Cross Chart Final");
+    cv::moveWindow("SFR Cross Chart Final", nSx, nSy + mImg.rows + nGap);
+    cv::namedWindow("SFR Cross Chart Inv Final");
+    cv::moveWindow("SFR Cross Chart Inv Final", nSx + mImg.cols + nGap, nSy + mImg.rows + nGap);
 
     //* window parameter
     if (m_ft == format::RAW8 || m_ft == format::RAW16) {
+        cv::imshow("SFR Chess Chart Final", mImgSFR); cv::waitKey(1);
+        cv::imshow("SFR Block Chart Final", mImgSFR_Block); cv::waitKey(1);
+        cv::imshow("SFR Cross Chart Final", mImgSFR_Cross); cv::waitKey(1);
+        cv::imshow("SFR Cross Chart Inv Final", mImgSFR_Cross_Inv); cv::waitKey(1);
         cv::imshow("Raw Final", mImg); cv::waitKey(waitKeyTime);
     }
     else if (m_ft == format::RAW10) {
         //* move color range Raw10 To Raw16 
+        cv::imshow("SFR Chess Chart Final", mImgSFR * 64); cv::waitKey(1);
+        cv::imshow("SFR Block Chart Final", mImgSFR_Block * 64); cv::waitKey(1);
+        cv::imshow("SFR Cross Chart Final", mImgSFR_Cross * 64); cv::waitKey(1);
+        cv::imshow("SFR Cross Chart Inv Final", mImgSFR_Cross_Inv * 64); cv::waitKey(1);
         cv::imshow("Raw Final", mImg * 64); cv::waitKey(waitKeyTime);
     }
     else if (m_ft == format::RAW12) {
         //* move color range Raw12 To Raw16 
+        cv::imshow("SFR Chess Chart Final", mImgSFR * 16); cv::waitKey(1);
+        cv::imshow("SFR Block Chart Final", mImgSFR_Block * 16); cv::waitKey(1);
+        cv::imshow("SFR Cross Chart Final", mImgSFR_Cross * 16); cv::waitKey(1);
+        cv::imshow("SFR Cross Chart Inv Final", mImgSFR_Cross_Inv * 16); cv::waitKey(1);
         cv::imshow("Raw Final", mImg * 16); cv::waitKey(waitKeyTime);
     }
     return true;
 }
 
 void RawCreater::ShowImg(std::string strTitle, cv::Mat img, int waitKeyTime) {
+    cv::destroyWindow(strTitle);
     //* window parameter
     if (m_ft == format::RAW8 || m_ft == format::RAW16) {
         cv::imshow(strTitle, img); cv::waitKey(waitKeyTime);
@@ -270,42 +307,97 @@ bool RawCreater::SaveImg(std::string strName) {
 
     //* write bmp
     if (m_ft == format::RAW8) {
+        //* bmp
         cv::imwrite(strSavePath + ".bmp", mImg);
+        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR);
+        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross);
+        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv);
+        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block);
+
+        //* raw
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW];
         CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
         CreateRaw(mImgSFR, Buffer);
-        SaveRaw(strSavePath+"sfrChess", Buffer);
+        SaveRaw(strSavePath + "sfrChess", Buffer);
+        CreateRaw(mImgSFR_Cross, Buffer);
+        SaveRaw(strSavePath + "sfrCross", Buffer);
+        CreateRaw(mImgSFR_Cross_Inv, Buffer);
+        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
+        CreateRaw(mImgSFR_Block, Buffer);
+        SaveRaw(strSavePath + "sfrBlock", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
     else if (m_ft == format::RAW10) {
         //* 1024 -> 256
-        cv::imwrite("SaveImg/" + strName + ".bmp", mImg / 4);
+
+        //* bmp
+        cv::imwrite(strSavePath + ".bmp", mImg / 4);
+        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / 4);
+        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / 4);
+        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / 4);
+        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / 4);
+
+        //* raw
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
         CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
         CreateRaw(mImgSFR, Buffer);
         SaveRaw(strSavePath + "sfrChess", Buffer);
+        CreateRaw(mImgSFR_Cross, Buffer);
+        SaveRaw(strSavePath + "sfrCross", Buffer);
+        CreateRaw(mImgSFR_Cross_Inv, Buffer);
+        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
+        CreateRaw(mImgSFR_Block, Buffer);
+        SaveRaw(strSavePath + "sfrBlock", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
     else if (m_ft == format::RAW12) {
         //* 4096 -> 256
-        cv::imwrite("SaveImg/" + strName + ".bmp", mImg / 16);
+
+        //* bmp
+        cv::imwrite(strSavePath + ".bmp", mImg / 16);
+        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / 16);
+        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / 16);
+        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / 16);
+        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / 16);
+
+        //* raw
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
         CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
         CreateRaw(mImgSFR, Buffer);
         SaveRaw(strSavePath + "sfrChess", Buffer);
+        CreateRaw(mImgSFR_Cross, Buffer);
+        SaveRaw(strSavePath + "sfrCross", Buffer);
+        CreateRaw(mImgSFR_Cross_Inv, Buffer);
+        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
+        CreateRaw(mImgSFR_Block, Buffer);
+        SaveRaw(strSavePath + "sfrBlock", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
     else if (m_ft == format::RAW16) {
         //* 65536 -> 256
-        cv::imwrite("SaveImg/" + strName + ".bmp", mImg / 256);
+
+        //* bmp
+        cv::imwrite(strSavePath + ".bmp", mImg / 256);
+        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / 256);
+        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / 256);
+        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / 256);
+        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / 256);
+
+        //* raw
         unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
         CreateRaw(mImg, Buffer);
         SaveRaw(strSavePath, Buffer);
         CreateRaw(mImgSFR, Buffer);
         SaveRaw(strSavePath + "sfrChess", Buffer);
+        CreateRaw(mImgSFR_Cross, Buffer);
+        SaveRaw(strSavePath + "sfrCross", Buffer);
+        CreateRaw(mImgSFR_Cross_Inv, Buffer);
+        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
+        CreateRaw(mImgSFR_Block, Buffer);
+        SaveRaw(strSavePath + "sfrBlock", Buffer);
         delete[] Buffer; Buffer = nullptr;
     }
 
@@ -322,8 +414,8 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
     //ShowImg("TT_G_SV", temp, 0);
     mImg.copyTo(temp(cv::Rect(m_nImgW, m_nImgH, m_nImgW, m_nImgH)));
     //ShowImg("TT_G_SV", temp, 0);
-    cv::Mat mtBlock(block_height, block_width, temp.type());
-    mtBlock.setTo(0);
+    //cv::Mat mtBlock(block_height, block_width, temp.type());
+    //mtBlock.setTo(0);
 
     //* Image Center
     int nCC_x = m_nImgW;
@@ -340,38 +432,275 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
         for (int x = 0; x < m_nSplit_X; x += 2) {
             int nL = nCC_x - (nMoveX - x) * block_width - block_width / 2;
             int nT = nCC_y - (nMoveY - y) * block_height - block_height / 2;
-            if (nT < 0 || nL < 0 || nT + block_height > m_nImgH * 2 || nL + block_width > m_nImgW * 2) continue;
-            mtBlock.copyTo(temp(cv::Rect(nL, nT, block_width, block_height)));
+            cv::Rect rt = cv::Rect(nL, nT, block_width, block_height);
+            if (rt.x < 0 || rt.y < 0 || rt.y + rt.height > m_nImgH * 2 || rt.x + rt.width > m_nImgW * 2) {
+                if (rt.y < 0) {
+                    rt.height += rt.y;
+                    rt.y = 0;
+                }
+                if (rt.x < 0) {
+                    rt.width += rt.x;
+                    rt.x = 0;
+                }
+                if (rt.y + rt.height > m_nImgH * 2) {
+                    rt.height -= (rt.y + rt.height - m_nImgH * 2);
+                }
+                if (rt.x + rt.width > m_nImgW * 2) {
+                    rt.width -= (rt.x + rt.width - m_nImgW * 2);
+                }
+            }
+            temp(rt).setTo(0);
             //ShowImg("TT_G_SV", temp, 0);
             nL = nCC_x - (nMoveX - x - 1) * block_width - block_width / 2;
             nT = nCC_y - (nMoveY - y - 1) * block_height - block_height / 2;
-            if (nT < 0 || nL < 0 || nT + block_height > m_nImgH * 2 || nL + block_width > m_nImgW * 2) continue;
-            mtBlock.copyTo(temp(cv::Rect(nL, nT, block_width, block_height)));
+            rt = cv::Rect(nL, nT, block_width, block_height);
+            if (rt.x < 0 || rt.y < 0 || rt.y + rt.height > m_nImgH * 2 || rt.x + rt.width > m_nImgW * 2) {
+                if (rt.y < 0) {
+                    rt.height += rt.y;
+                    rt.y = 0;
+                }
+                if (rt.x < 0) {
+                    rt.width += rt.x;
+                    rt.x = 0;
+                }
+                if (rt.y + rt.height > m_nImgH * 2) {
+                    rt.height -= (rt.y + rt.height - m_nImgH * 2);
+                }
+                if (rt.x + rt.width > m_nImgW * 2) {
+                    rt.width -= (rt.x + rt.width - m_nImgW * 2);
+                }
+            }
+            temp(rt).setTo(0);
             //ShowImg("TT_G_SV", temp, 0);
         }
     }
-
-    //ShowImg("TT_G_SV", temp, 0);
+    //ShowImg("TT_TEMP", temp, 0);
 
     cv::Mat temp2 = temp.clone();
     temp2.setTo(0);
-    for (size_t row = 0; row < temp.rows; row++) {
-        for (size_t col = 0; col < temp.cols; col++) {
-            cv::Point in(col, row);
-            cv::Point out = rotateD(in, cv::Point(nCC_y, nCC_x), rotate_degree);
+    for (size_t row = 0; row < (size_t)temp.rows; row++) {
+        for (size_t col = 0; col < (size_t)temp.cols; col++) {
+            cv::Point in((int)col, (int)row);
+            cv::Point out = rotateD(in, cv::Point(temp.cols / 2, temp.rows / 2), rotate_degree);
             if (out.x > 0 && out.x < m_nImgW * 2 && out.y>0 && out.y < m_nImgH * 2) {
-                //temp(cv::Rect(in.x, in.y, 1, 1)).copyTo(temp2(cv::Rect(out.x, out.y, 1, 1)));
                 temp(cv::Rect(out.x, out.y, 1, 1)).copyTo(temp2(cv::Rect(in.x, in.y, 1, 1)));
             }
         }
     }
+    //ShowImg("TT_TEMP2", temp2, 0);
 
-    //ShowImg("TT_G_S2", temp2, 0);
-
-    //cv::Mat crop = temp2(cv::Rect(m_nImgW - m_nImgW / 2, m_nImgH - m_nImgH / 2, m_nImgW, m_nImgH)).clone();
-    //ShowImg("TT_G_SR", crop, 0);
     mImgSFR = temp2(cv::Rect(m_nImgW - m_nImgW / 2, m_nImgH - m_nImgH / 2, m_nImgW, m_nImgH)).clone();
+    cv::GaussianBlur(mImgSFR, mImgSFR, cv::Size(3, 3), 0);
+    //ShowImg("TT_G_SR", mImgSFR, 0);
+}
 
+void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_degree) {
+    //* mask
+    cv::Mat mask(m_sfrH, m_sfrW, CV_8UC1); mask.setTo(0);
+    int rad = (m_sfrH < m_sfrW) ? m_sfrH / 2 : m_sfrW / 2;
+    cv::circle(mask, cv::Point(mask.cols / 2, mask.rows / 2), rad, cv::Scalar(255), -1);
+    //ShowImg("TT_M", mask, 1);
+
+    //* chart template
+    cv::Mat temp = mImg(cv::Rect(mImg.cols / 2 - m_sfrW, mImg.rows / 2 - m_sfrH, 2 * m_sfrW, 2 * m_sfrH)).clone();
+    temp(cv::Rect(0, 0, m_sfrW, m_sfrH)).setTo(0);
+    temp(cv::Rect(m_sfrW, m_sfrH, m_sfrW, m_sfrH)).setTo(0);
+    //ShowImg("TT_Chart", temp, 1);
+
+    cv::Mat chartTemp = temp.clone();
+    chartTemp.setTo(0);
+    for (size_t row = 0; row < (size_t)temp.rows; row++) {
+        for (size_t col = 0; col < (size_t)temp.cols; col++) {
+            cv::Point in((int)col, (int)row);
+            cv::Point out = rotateD(in, cv::Point(temp.cols / 2, temp.rows / 2), rotate_degree);
+            if (out.x > 0 && out.x < temp.cols && out.y>0 && out.y < temp.rows) {
+                //temp(cv::Rect(in.x, in.y, 1, 1)).copyTo(temp2(cv::Rect(out.x, out.y, 1, 1)));
+                temp(cv::Rect(out.x, out.y, 1, 1)).copyTo(chartTemp(cv::Rect(in.x, in.y, 1, 1)));
+            }
+        }
+    }
+    //cv::GaussianBlur(chartTemp, chartTemp, cv::Size(3, 3), 0);
+    //ShowImg("TT_ChartR", chartTemp, 0);
+    chartTemp = chartTemp(cv::Rect(temp.cols / 2 - m_sfrW / 2, temp.rows / 2 - m_sfrH / 2, m_sfrW, m_sfrH)).clone();
+    //ShowImg("TT_ChartR", chartTemp, 1);
+
+    //* create
+    mImgSFR_Cross = mImg.clone();
+    mImgSFR_Cross_Inv = mImg.clone(); mImgSFR_Cross_Inv.setTo(0);
+    int nCx = mImgSFR_Cross.cols / 2;
+    int nCy = mImgSFR_Cross.rows / 2;
+
+    std::vector<cv::Rect> sfrLocs;
+    //center
+    sfrLocs.push_back(cv::Rect(nCx - m_sfrW / 2, nCy - m_sfrH / 2, m_sfrW, m_sfrH));
+    //0.4F & 0.8F
+    for (int i = 5; i <= 8; i += 3) {
+        double dfield = i * 0.1;
+        //LT & RT & LB & RB
+        sfrLocs.push_back(cv::Rect(int(nCx - dfield * nCx) - m_sfrW / 2, int(nCy - dfield * nCy) - m_sfrH / 2, m_sfrW, m_sfrH));
+        sfrLocs.push_back(cv::Rect(int(nCx + dfield * nCx) - m_sfrW / 2, int(nCy - dfield * nCy) - m_sfrH / 2, m_sfrW, m_sfrH));
+        sfrLocs.push_back(cv::Rect(int(nCx - dfield * nCx) - m_sfrW / 2, int(nCy + dfield * nCy) - m_sfrH / 2, m_sfrW, m_sfrH));
+        sfrLocs.push_back(cv::Rect(int(nCx + dfield * nCx) - m_sfrW / 2, int(nCy + dfield * nCy) - m_sfrH / 2, m_sfrW, m_sfrH));
+        if (i == 5) {
+            double dLenth = sqrt(nCx * nCx + nCy * nCy) * dfield;
+            //T & B & L & R
+            sfrLocs.push_back(cv::Rect(nCx - m_sfrW / 2, int(nCy - dLenth) - m_sfrH / 2, m_sfrW, m_sfrH));
+            sfrLocs.push_back(cv::Rect(nCx - m_sfrW / 2, int(nCy + dLenth) - m_sfrH / 2, m_sfrW, m_sfrH));
+            sfrLocs.push_back(cv::Rect(int(nCx - dLenth) - m_sfrW / 2, nCy - m_sfrH / 2, m_sfrW, m_sfrH));
+            sfrLocs.push_back(cv::Rect(int(nCx + dLenth) - m_sfrW / 2, nCy - m_sfrH / 2, m_sfrW, m_sfrH));
+        }
+    }
+    //put
+    for (auto& loc : sfrLocs) {
+        //* location & chart size is all out of draw area
+        if (loc.x + loc.width < 0 || loc.x > mImgSFR_Cross.cols || loc.y + loc.height < 0 || loc.y > mImgSFR_Cross.rows) {
+            continue;
+        }
+
+        //*still can draw
+        if (loc.x < 0 || loc.y < 0 || loc.x + loc.width > mImgSFR_Cross.cols || loc.y + loc.height > mImgSFR_Cross.rows) {
+            cv::Rect rt(0, 0, m_sfrW, m_sfrH);
+            if (loc.x < 0) {
+                rt.x = -loc.x;
+                rt.width += loc.x;
+                loc.width += loc.x;
+                loc.x = 0;
+            }
+            if (loc.y < 0) {
+                rt.y = -loc.y;
+                rt.height += loc.y;
+                loc.height += loc.y;
+                loc.y = 0;
+            }
+            if (loc.x + loc.width > mImgSFR_Cross.cols) {
+                int diff = loc.x + loc.width - mImgSFR_Cross.cols + 1;
+                rt.width -= diff;
+                loc.width -= diff;
+            }
+            if (loc.y + loc.height > mImgSFR_Cross.rows) {
+                int diff = loc.y + loc.height - mImgSFR_Cross.rows + 1;
+                rt.height -= diff;
+                loc.height -= diff;
+            }
+            chartTemp(rt).copyTo(mImgSFR_Cross(loc), mask(rt));
+            chartTemp(rt).copyTo(mImgSFR_Cross_Inv(loc), mask(rt));
+        }
+        else {
+            chartTemp.copyTo(mImgSFR_Cross(loc), mask);
+            chartTemp.copyTo(mImgSFR_Cross_Inv(loc), mask);
+        }
+    }
+
+    cv::GaussianBlur(mImgSFR_Cross, mImgSFR_Cross, cv::Size(3, 3), 0);
+    cv::GaussianBlur(mImgSFR_Cross_Inv, mImgSFR_Cross_Inv, cv::Size(3, 3), 0);
+    //ShowImg("TT_ChartRes", mImgSFR_Cross, 1);
+    //ShowImg("TT_ChartRes_Inv", mImgSFR_Cross_Inv, 1);
+}
+
+void RawCreater::SFRBlockChart(int block_width, int block_height, double rotate_degree) {
+    //* chart template
+    cv::Mat temp = mImg(cv::Rect(mImg.cols / 2 - m_sfrW, mImg.rows / 2 - m_sfrH, 2 * m_sfrW, 2 * m_sfrH)).clone();
+    temp(cv::Rect(temp.cols / 2 - m_sfrW / 2, temp.rows / 2 - m_sfrH / 2, m_sfrW, m_sfrH)).setTo(0);
+    //ShowImg("TT_Chart", temp, 0);
+
+    //* rotate
+    cv::Mat chartTemp = temp.clone(); chartTemp.setTo(0);
+    for (size_t row = 0; row < (size_t)temp.rows; row++) {
+        for (size_t col = 0; col < (size_t)temp.cols; col++) {
+            cv::Point in((int)col, (int)row);
+            cv::Point out = rotateD(in, cv::Point(temp.cols / 2, temp.rows / 2), rotate_degree);
+            if (out.x > 0 && out.x < temp.cols && out.y>0 && out.y < temp.rows) {
+                temp(cv::Rect(out.x, out.y, 1, 1)).copyTo(chartTemp(cv::Rect(in.x, in.y, 1, 1)));
+            }
+        }
+    }
+    //ShowImg("TT_ChartR", chartTemp, 0);
+
+    //* crop useful image
+    double dd = (rotate_degree > 0) ? rotate_degree : 90 + rotate_degree;
+    double cosd = cos(dd * 3.141592 / 180.0);
+    double sind = sin(dd * 3.141592 / 180.0);
+    int nLengthW = int(m_sfrW * cosd + m_sfrW * sind) + 10;
+    int nLengthH = int(m_sfrH * cosd + m_sfrH * sind) + 10;
+    chartTemp = chartTemp(cv::Rect(chartTemp.cols / 2 - nLengthW / 2, chartTemp.rows / 2 - nLengthH / 2, nLengthW, nLengthH)).clone();
+    //ShowImg("TT_ChartR", chartTemp, 0);
+
+    cv::Mat mask = chartTemp.clone();
+    mask.convertTo(mask, CV_8UC1);
+    //ShowImg("TT_M", mask, 0);
+    cv::threshold(mask, mask, 100, 255, cv::THRESH_BINARY_INV);
+    int rad = (m_sfrH < m_sfrW) ? m_sfrH / 10 : m_sfrW / 10;
+    cv::circle(mask, cv::Point(mask.cols / 2, mask.rows / 2), rad, cv::Scalar(0), -1);
+    //ShowImg("TT_M", mask, 0);
+
+    //* create
+    mImgSFR_Block = mImg.clone();
+    int nCx = mImgSFR_Block.cols / 2;
+    int nCy = mImgSFR_Block.rows / 2;
+    int nW = chartTemp.cols;
+    int nH = chartTemp.rows;
+
+    std::vector<cv::Rect> sfrLocs;
+    //center
+    sfrLocs.push_back(cv::Rect(nCx - nW / 2, nCy - nH / 2, nW, nH));
+    //0.4F & 0.8F
+    for (int i = 5; i <= 8; i += 3) {
+        double dfield = i * 0.1;
+        //LT & RT & LB & RB
+        sfrLocs.push_back(cv::Rect(int(nCx - dfield * nCx) - nW / 2, int(nCy - dfield * nCy) - nH / 2, nW, nH));
+        sfrLocs.push_back(cv::Rect(int(nCx + dfield * nCx) - nW / 2, int(nCy - dfield * nCy) - nH / 2, nW, nH));
+        sfrLocs.push_back(cv::Rect(int(nCx - dfield * nCx) - nW / 2, int(nCy + dfield * nCy) - nH / 2, nW, nH));
+        sfrLocs.push_back(cv::Rect(int(nCx + dfield * nCx) - nW / 2, int(nCy + dfield * nCy) - nH / 2, nW, nH));
+        if (i == 5) {
+            double dLenth = sqrt(nCx * nCx + nCy * nCy) * dfield;
+            //T & B & L & R
+            sfrLocs.push_back(cv::Rect(nCx - nW / 2, int(nCy - dLenth) - nH / 2, nW, nH));
+            sfrLocs.push_back(cv::Rect(nCx - nW / 2, int(nCy + dLenth) - nH / 2, nW, nH));
+            sfrLocs.push_back(cv::Rect(int(nCx - dLenth) - nW / 2, nCy - nH / 2, nW, nH));
+            sfrLocs.push_back(cv::Rect(int(nCx + dLenth) - nW / 2, nCy - nH / 2, nW, nH));
+        }
+    }
+    //put
+    for (auto& loc : sfrLocs) {
+        //* location & chart size is all out of draw area
+        if (loc.x + loc.width < 0 || loc.x > mImgSFR_Block.cols || loc.y + loc.height < 0 || loc.y > mImgSFR_Block.rows) {
+            continue;
+        }
+
+        //*still can draw
+        if (loc.x < 0 || loc.y < 0 || loc.x + loc.width > mImgSFR_Block.cols || loc.y + loc.height > mImgSFR_Block.rows) {
+            cv::Rect rt(0, 0, nW, nH);
+            if (loc.x < 0) {
+                rt.x = -loc.x;
+                rt.width += loc.x;
+                loc.width += loc.x;
+                loc.x = 0;
+            }
+            if (loc.y < 0) {
+                rt.y = -loc.y;
+                rt.height += loc.y;
+                loc.height += loc.y;
+                loc.y = 0;
+            }
+            if (loc.x + loc.width > mImgSFR_Block.cols) {
+                int diff = loc.x + loc.width - mImgSFR_Block.cols + 1;
+                rt.width -= diff;
+                loc.width -= diff;
+            }
+            if (loc.y + loc.height > mImgSFR_Block.rows) {
+                int diff = loc.y + loc.height - mImgSFR_Block.rows + 1;
+                rt.height -= diff;
+                loc.height -= diff;
+            }
+            chartTemp(rt).copyTo(mImgSFR_Block(loc), mask(rt));
+        }
+        else {
+            chartTemp.copyTo(mImgSFR_Block(loc), mask);
+        }
+    }
+
+    cv::GaussianBlur(mImgSFR_Block, mImgSFR_Block, cv::Size(3, 3), 0);
+    //ShowImg("TT_ChartRes", mImgSFR_Block, 0);
 }
 
 std::string RawCreater::RawFormat_Str(format m_ft) {

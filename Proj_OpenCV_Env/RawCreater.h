@@ -42,6 +42,7 @@ public:
     int m_B = 0;
     int m_nCV_type = 0;
     unsigned char* SaveRawBuffer = nullptr;
+    int m_blackLevel = 0;
     //* Normal Color 
     cv::Mat mImg;
 

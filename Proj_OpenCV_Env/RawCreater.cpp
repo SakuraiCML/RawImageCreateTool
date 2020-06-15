@@ -51,15 +51,19 @@ int RawCreater::Initial() {
         int ft_value = std::stoi(m_argv[4]);
         if (ft_value == 0) {
             m_ft = format::RAW8;
+            m_blackLevel = 16;
         }
         else if (ft_value == 1) {
             m_ft = format::RAW10;
+            m_blackLevel = 64;
         }
         else if (ft_value == 2) {
             m_ft = format::RAW12;
+            m_blackLevel = 168;
         }
         else if (ft_value == 3) {
             m_ft = format::RAW16;
+            m_blackLevel = 500;
         }
 
         //* color set
@@ -449,7 +453,7 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
                     rt.width -= (rt.x + rt.width - m_nImgW * 2);
                 }
             }
-            temp(rt).setTo(0);
+            temp(rt).setTo(m_blackLevel);
             //ShowImg("TT_G_SV", temp, 0);
             nL = nCC_x - (nMoveX - x - 1) * block_width - block_width / 2;
             nT = nCC_y - (nMoveY - y - 1) * block_height - block_height / 2;
@@ -470,14 +474,14 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
                     rt.width -= (rt.x + rt.width - m_nImgW * 2);
                 }
             }
-            temp(rt).setTo(0);
+            temp(rt).setTo(m_blackLevel);
             //ShowImg("TT_G_SV", temp, 0);
         }
     }
     //ShowImg("TT_TEMP", temp, 0);
 
     cv::Mat temp2 = temp.clone();
-    temp2.setTo(0);
+    temp2.setTo(m_blackLevel);
     for (size_t row = 0; row < (size_t)temp.rows; row++) {
         for (size_t col = 0; col < (size_t)temp.cols; col++) {
             cv::Point in((int)col, (int)row);
@@ -503,12 +507,12 @@ void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_
 
     //* chart template
     cv::Mat temp = mImg(cv::Rect(mImg.cols / 2 - m_sfrW, mImg.rows / 2 - m_sfrH, 2 * m_sfrW, 2 * m_sfrH)).clone();
-    temp(cv::Rect(0, 0, m_sfrW, m_sfrH)).setTo(0);
-    temp(cv::Rect(m_sfrW, m_sfrH, m_sfrW, m_sfrH)).setTo(0);
+    temp(cv::Rect(0, 0, m_sfrW, m_sfrH)).setTo(m_blackLevel);
+    temp(cv::Rect(m_sfrW, m_sfrH, m_sfrW, m_sfrH)).setTo(m_blackLevel);
     //ShowImg("TT_Chart", temp, 1);
 
     cv::Mat chartTemp = temp.clone();
-    chartTemp.setTo(0);
+    chartTemp.setTo(m_blackLevel);
     for (size_t row = 0; row < (size_t)temp.rows; row++) {
         for (size_t col = 0; col < (size_t)temp.cols; col++) {
             cv::Point in((int)col, (int)row);
@@ -526,7 +530,7 @@ void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_
 
     //* create
     mImgSFR_Cross = mImg.clone();
-    mImgSFR_Cross_Inv = mImg.clone(); mImgSFR_Cross_Inv.setTo(0);
+    mImgSFR_Cross_Inv = mImg.clone(); mImgSFR_Cross_Inv.setTo(m_blackLevel);
     int nCx = mImgSFR_Cross.cols / 2;
     int nCy = mImgSFR_Cross.rows / 2;
 
@@ -600,11 +604,11 @@ void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_
 void RawCreater::SFRBlockChart(int block_width, int block_height, double rotate_degree) {
     //* chart template
     cv::Mat temp = mImg(cv::Rect(mImg.cols / 2 - m_sfrW, mImg.rows / 2 - m_sfrH, 2 * m_sfrW, 2 * m_sfrH)).clone();
-    temp(cv::Rect(temp.cols / 2 - m_sfrW / 2, temp.rows / 2 - m_sfrH / 2, m_sfrW, m_sfrH)).setTo(0);
+    temp(cv::Rect(temp.cols / 2 - m_sfrW / 2, temp.rows / 2 - m_sfrH / 2, m_sfrW, m_sfrH)).setTo(m_blackLevel);
     //ShowImg("TT_Chart", temp, 0);
 
     //* rotate
-    cv::Mat chartTemp = temp.clone(); chartTemp.setTo(0);
+    cv::Mat chartTemp = temp.clone(); chartTemp.setTo(m_blackLevel);
     for (size_t row = 0; row < (size_t)temp.rows; row++) {
         for (size_t col = 0; col < (size_t)temp.cols; col++) {
             cv::Point in((int)col, (int)row);

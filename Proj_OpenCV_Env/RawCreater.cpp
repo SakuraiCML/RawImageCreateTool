@@ -110,6 +110,18 @@ int RawCreater::Initial() {
             m_sfrH = m_nImgH / 20;
             m_sfrDegree = 8.0;
         }
+
+        //* distortion param
+        if (m_argc >= 14) {
+            m_bDistortionFlag = true;
+            m_dk1 = std::stod(m_argv[11]);
+            m_dk2 = std::stod(m_argv[12]);
+            m_dk3 = std::stod(m_argv[13]);
+            //* all distortion param is not use, unable the Distortion function
+            if (m_dk1 == 0.0 && m_dk2 == 0.0 && m_dk3 == 0.0) {
+                m_bDistortionFlag = false;
+            }
+        }
     }
 
     //** set image **
@@ -295,7 +307,11 @@ int RawCreater::CreateRawImg() {
         cv::GaussianBlur(matBMP, matBMP, cv::Size(nS, nS), nS / 2);
     }
     mImg = matBMP.clone();
-    //ShowImg("TT_G_S", matBMP, 0);
+
+    //* distortion
+    if (m_bDistortionFlag) {
+        mImg_Dis = radialDistortion(mImg, m_dk1, m_dk2, m_dk3);
+    }
 
     delete[] dGaussCoeff; dGaussCoeff = nullptr;
     delete[] R_index; R_index = nullptr;
@@ -309,101 +325,69 @@ bool RawCreater::SaveImg(std::string strName) {
     //* Save string
     std::string  strSavePath = "SaveImg/" + strName;
 
+    int nMove = 1;
+    int nSize = 1;
+
     //* write bmp
     if (m_ft == format::RAW8) {
-        //* bmp
-        cv::imwrite(strSavePath + ".bmp", mImg);
-        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR);
-        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross);
-        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv);
-        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block);
-
-        //* raw
-        unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW];
-        CreateRaw(mImg, Buffer);
-        SaveRaw(strSavePath, Buffer);
-        CreateRaw(mImgSFR, Buffer);
-        SaveRaw(strSavePath + "sfrChess", Buffer);
-        CreateRaw(mImgSFR_Cross, Buffer);
-        SaveRaw(strSavePath + "sfrCross", Buffer);
-        CreateRaw(mImgSFR_Cross_Inv, Buffer);
-        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
-        CreateRaw(mImgSFR_Block, Buffer);
-        SaveRaw(strSavePath + "sfrBlock", Buffer);
-        delete[] Buffer; Buffer = nullptr;
+        nMove = 1;
+        nSize = 1;
     }
     else if (m_ft == format::RAW10) {
         //* 1024 -> 256
-
-        //* bmp
-        cv::imwrite(strSavePath + ".bmp", mImg / 4);
-        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / 4);
-        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / 4);
-        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / 4);
-        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / 4);
-
-        //* raw
-        unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
-        CreateRaw(mImg, Buffer);
-        SaveRaw(strSavePath, Buffer);
-        CreateRaw(mImgSFR, Buffer);
-        SaveRaw(strSavePath + "sfrChess", Buffer);
-        CreateRaw(mImgSFR_Cross, Buffer);
-        SaveRaw(strSavePath + "sfrCross", Buffer);
-        CreateRaw(mImgSFR_Cross_Inv, Buffer);
-        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
-        CreateRaw(mImgSFR_Block, Buffer);
-        SaveRaw(strSavePath + "sfrBlock", Buffer);
-        delete[] Buffer; Buffer = nullptr;
+        nMove = 4;
+        nSize = 2;
     }
     else if (m_ft == format::RAW12) {
         //* 4096 -> 256
-
-        //* bmp
-        cv::imwrite(strSavePath + ".bmp", mImg / 16);
-        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / 16);
-        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / 16);
-        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / 16);
-        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / 16);
-
-        //* raw
-        unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
-        CreateRaw(mImg, Buffer);
-        SaveRaw(strSavePath, Buffer);
-        CreateRaw(mImgSFR, Buffer);
-        SaveRaw(strSavePath + "sfrChess", Buffer);
-        CreateRaw(mImgSFR_Cross, Buffer);
-        SaveRaw(strSavePath + "sfrCross", Buffer);
-        CreateRaw(mImgSFR_Cross_Inv, Buffer);
-        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
-        CreateRaw(mImgSFR_Block, Buffer);
-        SaveRaw(strSavePath + "sfrBlock", Buffer);
-        delete[] Buffer; Buffer = nullptr;
+        nMove = 16;
+        nSize = 2;
     }
     else if (m_ft == format::RAW16) {
         //* 65536 -> 256
-
-        //* bmp
-        cv::imwrite(strSavePath + ".bmp", mImg / 256);
-        cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / 256);
-        cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / 256);
-        cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / 256);
-        cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / 256);
-
-        //* raw
-        unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * 2];
-        CreateRaw(mImg, Buffer);
-        SaveRaw(strSavePath, Buffer);
-        CreateRaw(mImgSFR, Buffer);
-        SaveRaw(strSavePath + "sfrChess", Buffer);
-        CreateRaw(mImgSFR_Cross, Buffer);
-        SaveRaw(strSavePath + "sfrCross", Buffer);
-        CreateRaw(mImgSFR_Cross_Inv, Buffer);
-        SaveRaw(strSavePath + "sfrCrossInv", Buffer);
-        CreateRaw(mImgSFR_Block, Buffer);
-        SaveRaw(strSavePath + "sfrBlock", Buffer);
-        delete[] Buffer; Buffer = nullptr;
+        nMove = 256;
+        nSize = 2;
     }
+
+    //* bmp
+    cv::imwrite(strSavePath + ".bmp", mImg / nMove);
+    cv::imwrite(strSavePath + "sfrChess.bmp", mImgSFR / nMove);
+    cv::imwrite(strSavePath + "sfrCross.bmp", mImgSFR_Cross / nMove);
+    cv::imwrite(strSavePath + "sfrCrossInv.bmp", mImgSFR_Cross_Inv / nMove);
+    cv::imwrite(strSavePath + "sfrBlock.bmp", mImgSFR_Block / nMove);
+    if (m_bDistortionFlag) {
+        cv::imwrite(strSavePath + "_Dis.bmp", mImg_Dis / nMove);
+        cv::imwrite(strSavePath + "sfrChess_Dis.bmp", mImgSFR_Dis / nMove);
+        cv::imwrite(strSavePath + "sfrCross_Dis.bmp", mImgSFR_Cross_Dis / nMove);
+        cv::imwrite(strSavePath + "sfrCrossInv_Dis.bmp", mImgSFR_Cross_Inv_Dis / nMove);
+        cv::imwrite(strSavePath + "sfrBlock_Dis.bmp", mImgSFR_Block_Dis / nMove);
+    }
+
+    //* raw
+    unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * nSize];
+    CreateRaw(mImg, Buffer);
+    SaveRaw(strSavePath, Buffer);
+    CreateRaw(mImgSFR, Buffer);
+    SaveRaw(strSavePath + "sfrChess", Buffer);
+    CreateRaw(mImgSFR_Cross, Buffer);
+    SaveRaw(strSavePath + "sfrCross", Buffer);
+    CreateRaw(mImgSFR_Cross_Inv, Buffer);
+    SaveRaw(strSavePath + "sfrCrossInv", Buffer);
+    CreateRaw(mImgSFR_Block, Buffer);
+    SaveRaw(strSavePath + "sfrBlock", Buffer);
+    if (m_bDistortionFlag) {
+        CreateRaw(mImg_Dis, Buffer);
+        SaveRaw(strSavePath + "_Dis", Buffer);
+        CreateRaw(mImgSFR_Dis, Buffer);
+        SaveRaw(strSavePath + "sfrChess_Dis", Buffer);
+        CreateRaw(mImgSFR_Cross_Dis, Buffer);
+        SaveRaw(strSavePath + "sfrCross_Dis", Buffer);
+        CreateRaw(mImgSFR_Cross_Inv_Dis, Buffer);
+        SaveRaw(strSavePath + "sfrCrossInv_Dis", Buffer);
+        CreateRaw(mImgSFR_Block_Dis, Buffer);
+        SaveRaw(strSavePath + "sfrBlock_Dis", Buffer);
+    }
+    delete[] Buffer; Buffer = nullptr;
 
     return true;
 }
@@ -496,6 +480,11 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
     mImgSFR = temp2(cv::Rect(m_nImgW - m_nImgW / 2, m_nImgH - m_nImgH / 2, m_nImgW, m_nImgH)).clone();
     cv::GaussianBlur(mImgSFR, mImgSFR, cv::Size(3, 3), 0);
     //ShowImg("TT_G_SR", mImgSFR, 0);
+
+    //* distortion
+    if (m_bDistortionFlag) {
+        mImgSFR_Dis = radialDistortion(mImgSFR, m_dk1, m_dk2, m_dk3);
+    }
 }
 
 void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_degree) {
@@ -599,6 +588,12 @@ void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_
     cv::GaussianBlur(mImgSFR_Cross_Inv, mImgSFR_Cross_Inv, cv::Size(3, 3), 0);
     //ShowImg("TT_ChartRes", mImgSFR_Cross, 1);
     //ShowImg("TT_ChartRes_Inv", mImgSFR_Cross_Inv, 1);
+
+    //* distortion
+    if (m_bDistortionFlag) {
+        mImgSFR_Cross_Dis = radialDistortion(mImgSFR_Cross, m_dk1, m_dk2, m_dk3);
+        mImgSFR_Cross_Inv_Dis = radialDistortion(mImgSFR_Cross_Inv, m_dk1, m_dk2, m_dk3);
+    }
 }
 
 void RawCreater::SFRBlockChart(int block_width, int block_height, double rotate_degree) {
@@ -705,6 +700,11 @@ void RawCreater::SFRBlockChart(int block_width, int block_height, double rotate_
 
     cv::GaussianBlur(mImgSFR_Block, mImgSFR_Block, cv::Size(3, 3), 0);
     //ShowImg("TT_ChartRes", mImgSFR_Block, 0);
+
+    //* distortion
+    if (m_bDistortionFlag) {
+        mImgSFR_Block_Dis = radialDistortion(mImgSFR_Block, m_dk1, m_dk2, m_dk3);
+    }
 }
 
 std::string RawCreater::RawFormat_Str(format m_ft) {
@@ -951,4 +951,36 @@ cv::Point RawCreater::rotateD(cv::Point inPoint, cv::Point centerPoint, double D
     result.x = result.x + centerPoint.x;
     result.y = result.y + centerPoint.y;
     return result;
+}
+
+cv::Mat RawCreater::radialDistortion(cv::Mat src, double k1, double k2, double k3) {
+    cv::Mat temp = src.clone();
+    temp.setTo(m_blackLevel);
+
+    //* make distortion
+    for (int row = 0; row < temp.rows; row++) {
+        for (int col = 0; col < temp.cols; col++) {
+            cv::Point2d in((double)col, (double)row);
+            in.x -= (double)temp.cols / 2;
+            in.y -= (double)temp.rows / 2;
+            double radSq = (in.x * in.x + in.y * in.y);
+            double coeff = (1.0 + k1 * radSq + k2 * radSq * radSq + k3 * radSq * radSq * radSq);
+            double x_dis = in.x * coeff;
+            double y_dis = in.y * coeff;
+            cv::Point2d out(x_dis, y_dis);
+
+            //* recover order
+            in.x += temp.cols / 2;
+            in.y += temp.rows / 2;
+            out.x += temp.cols / 2;
+            out.y += temp.rows / 2;
+            if (out.x > 0 && out.x < temp.cols && out.y>0 && out.y < temp.rows) {
+                src(cv::Rect((int)out.x, (int)out.y, 1, 1)).copyTo(temp(cv::Rect((int)in.x, (int)in.y, 1, 1)));
+            }
+        }
+    }
+
+    //ShowImg("Distortion", temp, 0);
+
+    return temp.clone();
 }

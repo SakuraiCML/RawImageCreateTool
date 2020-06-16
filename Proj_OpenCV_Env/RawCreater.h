@@ -43,8 +43,14 @@ public:
     int m_nCV_type = 0;
     unsigned char* SaveRawBuffer = nullptr;
     int m_blackLevel = 0;
+    //* distortion parameter
+    bool m_bDistortionFlag = false;
+    double m_dk1 = 0.0;
+    double m_dk2 = 0.0;
+    double m_dk3 = 0.0;
     //* Normal Color 
     cv::Mat mImg;
+    cv::Mat mImg_Dis;
 
     //** sfr param **
     int m_sfrW = 0;
@@ -52,11 +58,15 @@ public:
     double m_sfrDegree = 0.0;
     //* SFR Chess Chart
     cv::Mat mImgSFR;
+    cv::Mat mImgSFR_Dis;
     //* SFR Cross Chart
     cv::Mat mImgSFR_Cross;
     cv::Mat mImgSFR_Cross_Inv;
+    cv::Mat mImgSFR_Cross_Dis;
+    cv::Mat mImgSFR_Cross_Inv_Dis;
     //* SFR Block Chart
     cv::Mat mImgSFR_Block;
+    cv::Mat mImgSFR_Block_Dis;
 
     //* function
 public:
@@ -91,6 +101,10 @@ private:
     void SaveRaw(std::string str_name, unsigned char* _Buffer);
     //* rotate function
     cv::Point rotateD(cv::Point inPoint, cv::Point centerPoint, double Dgree);
+
+public:
+    //* Radial distortion function
+    cv::Mat radialDistortion(cv::Mat src, double k1, double k2, double k3);
 
 };
 

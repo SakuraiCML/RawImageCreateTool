@@ -49,5 +49,9 @@
 - argc[8] : SFR roi width
 - argc[9] : SFR roi height
 - argc[10] : SFR rotate degree
+<!-- parameter of distortion -->
+- argc[11] : Distortion param k1
+- argc[12] : Distortion param k2
+- argc[13] : Distortion param k3
 
 *歡迎大家使用!! Eric.CM.Liu*

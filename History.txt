@@ -1,4 +1,13 @@
 ---------------------------
+  *** version 1.0.1.0 ***
+---------------------------
+ Programmer  : eric.cm.liu
+ Issue       : none
+ Cause       : none
+ Sol         : 增加生成Distortion Image功能
+ Note        : none
+
+---------------------------
   *** version 1.0.0.3 ***
 ---------------------------
  Programmer  : eric.cm.liu

@@ -59,6 +59,8 @@ public:
     //* SFR Chess Chart
     cv::Mat mImgSFR;
     cv::Mat mImgSFR_Dis;
+    std::vector<cv::Mat> mImgSFR_Degree;
+    std::vector<cv::Mat> mImgSFR_Degree_Dis;
     //* SFR Cross Chart
     cv::Mat mImgSFR_Cross;
     cv::Mat mImgSFR_Cross_Inv;
@@ -105,6 +107,9 @@ private:
 public:
     //* Radial distortion function
     cv::Mat radialDistortion(cv::Mat src, double k1, double k2, double k3);
+
+    //* 3D rotate
+    cv::Mat rotate3D(cv::Mat src, double dx, double dy, double dz);
 
 };
 

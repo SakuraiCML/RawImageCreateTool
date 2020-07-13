@@ -363,6 +363,18 @@ bool RawCreater::SaveImg(std::string strName) {
         cv::imwrite(strSavePath + "sfrBlock_Dis.bmp", mImgSFR_Block_Dis / nMove);
     }
 
+    //*Rotate
+    //int count = -30;
+    //for (auto& img : mImgSFR_Degree) {
+    //    cv::imwrite(strSavePath + "sfrChess_"+std::to_string(count)+".bmp", img / nMove);
+    //    count += 5;
+    //}
+    //count = -30;
+    //for (auto& img : mImgSFR_Degree_Dis) {
+    //    cv::imwrite(strSavePath + "sfrChess_Dis_" + std::to_string(count) + ".bmp", img / nMove);
+    //    count += 5;
+    //}
+
     //* raw
     unsigned char* Buffer = new unsigned char[m_nImgH * m_nImgW * nSize];
     CreateRaw(mImg, Buffer);
@@ -485,6 +497,17 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
     if (m_bDistortionFlag) {
         mImgSFR_Dis = radialDistortion(mImgSFR, m_dk1, m_dk2, m_dk3);
     }
+    //ShowImg("Rotate 3D before", mImgSFR, 1);
+    //for (double deg = -30.0; deg <= 30.0; deg += 5.0) {
+    //    cv::Mat test = rotate3D(mImgSFR, deg, 0.0, 0.0);
+    //    //ShowImg("Rotate 3D after", test, 0);
+    //    mImgSFR_Degree.push_back(test.clone());
+    //}
+    //for (double deg = -30.0; deg <= 30.0; deg += 5.0) {
+    //    cv::Mat test = rotate3D(mImgSFR_Dis, deg, 0.0, 0.0);
+    //    //ShowImg("Rotate 3D after", test, 0);
+    //    mImgSFR_Degree_Dis.push_back(test.clone());
+    //}
 }
 
 void RawCreater::SFRCrossChart(int block_width, int block_height, double rotate_degree) {
@@ -983,4 +1006,36 @@ cv::Mat RawCreater::radialDistortion(cv::Mat src, double k1, double k2, double k
     //ShowImg("Distortion", temp, 0);
 
     return temp.clone();
+}
+
+cv::Mat RawCreater::rotate3D(cv::Mat src, double dx, double dy, double dz) {
+    cv::Mat result = src.clone();
+    result.setTo(0);
+    double cosd = 0.0;
+    double sind = 0.0;
+
+    double dRTdata[4] = { 0.0 };
+
+    //* center
+    int cx = src.cols / 2;
+    int cy = src.rows / 2;
+
+    //* rotate by x-axis , ignore z-axis overlap
+    cosd = cos(dx * 3.141592 / 180.0);
+    sind = sin(dx * 3.141592 / 180.0);
+    dRTdata[0] = 0.0; dRTdata[1] = cosd; dRTdata[2] = -sind; dRTdata[3] = 0.0;
+    for (int y = 0; y < src.rows; y++) {
+        for (int x = 0; x < src.cols; x++) {
+            double yy = dRTdata[1] * (y - cy) + dRTdata[2];
+            cv::Rect target(x, int(yy + cy), 1, 1);
+            if (target.x<0 || target.y<0 || target.x>src.cols - 1 || target.y>src.rows - 1) {
+                continue;
+            }
+            //src(target).copyTo(result(cv::Rect(x, y, 1, 1)));
+            src(cv::Rect(x, y, 1, 1)).copyTo(result(target));
+        }
+        //ShowImg("Rotate 3D after", result, 0);
+    }
+
+    return result.clone();
 }

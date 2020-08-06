@@ -364,7 +364,7 @@ bool RawCreater::SaveImg(std::string strName) {
     }
 
     //*Rotate
-    //int count = -30;
+    //int count = -15;
     //for (auto& img : mImgSFR_Degree) {
     //    cv::imwrite(strSavePath + "sfrChess_"+std::to_string(count)+".bmp", img / nMove);
     //    count += 5;
@@ -498,8 +498,8 @@ void RawCreater::SFRChessChart(int block_width, int block_height, double rotate_
         mImgSFR_Dis = radialDistortion(mImgSFR, m_dk1, m_dk2, m_dk3);
     }
     //ShowImg("Rotate 3D before", mImgSFR, 1);
-    //for (double deg = -30.0; deg <= 30.0; deg += 5.0) {
-    //    cv::Mat test = rotate3D(mImgSFR, deg, 0.0, 0.0);
+    //for (double deg = -15.0; deg <= 15.0; deg += 5.0) {
+    //    cv::Mat test = rotate3D(mImgSFR, deg, 0.0, -8.0);
     //    //ShowImg("Rotate 3D after", test, 0);
     //    mImgSFR_Degree.push_back(test.clone());
     //}
@@ -1010,32 +1010,74 @@ cv::Mat RawCreater::radialDistortion(cv::Mat src, double k1, double k2, double k
 
 cv::Mat RawCreater::rotate3D(cv::Mat src, double dx, double dy, double dz) {
     cv::Mat result = src.clone();
-    result.setTo(0);
+    cv::Mat tmp = src.clone();
+    //result.setTo(0);
     double cosd = 0.0;
     double sind = 0.0;
 
-    double dRTdata[4] = { 0.0 };
+    //double dRTdata[4] = { 0.0 };
 
     //* center
     int cx = src.cols / 2;
     int cy = src.rows / 2;
 
-    //* rotate by x-axis , ignore z-axis overlap
-    cosd = cos(dx * 3.141592 / 180.0);
-    sind = sin(dx * 3.141592 / 180.0);
-    dRTdata[0] = 0.0; dRTdata[1] = cosd; dRTdata[2] = -sind; dRTdata[3] = 0.0;
+    //* rotate by z-axis , ignore z-axis overlap
+    tmp = result.clone();
+    result.setTo(0);
+    cosd = cos(dz * 3.141592 / 180.0);
+    sind = sin(dz * 3.141592 / 180.0);
     for (int y = 0; y < src.rows; y++) {
         for (int x = 0; x < src.cols; x++) {
-            double yy = dRTdata[1] * (y - cy) + dRTdata[2];
+            double xx = cosd * (x - cx) - sind * (y - cy);
+            double yy = sind * (x - cx) + cosd * (y - cy);
+            cv::Rect target(int(xx + cx), int(yy + cy), 1, 1);
+            if (target.x<0 || target.y<0 || target.x>src.cols - 1 || target.y>src.rows - 1) {
+                continue;
+            }
+            //src(target).copyTo(result(cv::Rect(x, y, 1, 1)));
+            //tmp(cv::Rect(x, y, 1, 1)).copyTo(result(target));
+            tmp(target).copyTo(result(cv::Rect(x, y, 1, 1)));
+        }
+    }
+    //ShowImg("Rotate 3D after", result, 0);
+
+    //* rotate by x-axis , ignore z-axis overlap
+    tmp = result.clone();
+    result.setTo(0);
+    cosd = cos(dx * 3.141592 / 180.0);
+    sind = sin(dx * 3.141592 / 180.0);
+    for (int y = 0; y < src.rows; y++) {
+        for (int x = 0; x < src.cols; x++) {
+            double yy = cosd * (y - cy) + (-sind);
             cv::Rect target(x, int(yy + cy), 1, 1);
             if (target.x<0 || target.y<0 || target.x>src.cols - 1 || target.y>src.rows - 1) {
                 continue;
             }
             //src(target).copyTo(result(cv::Rect(x, y, 1, 1)));
-            src(cv::Rect(x, y, 1, 1)).copyTo(result(target));
+            tmp(cv::Rect(x, y, 1, 1)).copyTo(result(target));
         }
-        //ShowImg("Rotate 3D after", result, 0);
     }
+    //ShowImg("Rotate 3D after", result, 0);
+
+    //* rotate by y-axis , ignore z-axis overlap
+    tmp = result.clone();
+    result.setTo(0);
+    cosd = cos(dy * 3.141592 / 180.0);
+    sind = sin(dy * 3.141592 / 180.0);
+    for (int y = 0; y < src.rows; y++) {
+        for (int x = 0; x < src.cols; x++) {
+            double xx = cosd * (x - cx) - sind;
+            cv::Rect target(int(xx + cx), y, 1, 1);
+            if (target.x<0 || target.y<0 || target.x>src.cols - 1 || target.y>src.rows - 1) {
+                continue;
+            }
+            //src(target).copyTo(result(cv::Rect(x, y, 1, 1)));
+            tmp(cv::Rect(x, y, 1, 1)).copyTo(result(target));
+        }
+    }
+    //ShowImg("Rotate 3D after", result, 0);
+
+    
 
     return result.clone();
 }
